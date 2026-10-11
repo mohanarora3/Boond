@@ -43,9 +43,9 @@
 
 ## 1. The problem
 
-- **There is no tool for it.** The Ministry of Jal Shakti's Smart India Hackathon 2025 problem statement **SIH25065** says there is no user-friendly digital platform for people to assess their rooftop rainwater harvesting (RTRWH) potential.
-- **Delhi made it mandatory.** Under *Catch the Rain 2026*, rainwater harvesting is mandatory for buildings on plots of **100 m² or more**. Owners can get up to **₹50,000** (50% of cost) in financial assistance and a **10% water-bill rebate**. Non-compliance has been reported to carry a penalty of **50% of the water bill**.
-- **Systems that get built stop working.** Without maintenance, filters clog and pits silt up. About 55% of systems were reported non-functional in Bengaluru, and 70–80% defunct in Faridabad.
+Delhi’s groundwater is falling fast, and many areas rely on tankers in summer. Yet every monsoon, most of the rain that falls on rooftops runs into drains and adds to street flooding. Rooftop rainwater harvesting can fix much of this, and Delhi requires it for larger plots. But most people don’t know where to start: how much water their roof can collect, what system they need, or what size it should be. That uncertainty keeps many from acting.
+
+Boond is mainly for homeowners and residents’ welfare associations in Delhi who want to install rainwater harvesting but lack technical knowledge. It also helps housing societies, schools, and small businesses with large roofs, and owners who need a harvesting system to meet building rules. Boond gives them a clear, personalised plan in minutes, so they can talk to a contractor with confidence and turn their roof into a water source.
 
 So Boond covers the whole life of a system: **plan → ask → apply → officer review → install → monsoon check → verified certificate**, and gives ward officers a view of the whole ward.
 
