@@ -1,0 +1,87 @@
+{
+  "mandatory_min_plot_m2": 100,
+  "max_assistance_inr": 50000,
+  "assistance_fraction": 0.5,
+  "rebate_fraction": 0.1,
+  "penalty_fraction": 0.5,
+  "default_annual_rainfall_mm": 750,
+  "tanker_litres": 10000,
+  "tanker_price_inr": 4500,
+  "rainfall_history_years": 10,
+  "runoff_coefficients": {
+    "rcc": 0.8,
+    "tin": 0.85,
+    "tiles": 0.75
+  },
+  "default_roof_type": "rcc",
+  "application_documents": [
+    "Proof of ownership or allotment of the property (sale deed / allotment letter / GPA)",
+    "Latest property tax receipt",
+    "Photo ID of the applicant (Aadhaar / Voter ID / Passport)",
+    "Latest Delhi Jal Board water bill (consumer number)",
+    "Site photo of the roof and the proposed pit/tank location",
+    "Sketch of the rainwater harvesting system with dimensions (this summary can be attached)",
+    "Cancelled cheque or bank details for receiving financial assistance",
+    "For RWAs/societies: resolution authorising the applicant"
+  ],
+  "authority_name": "Delhi Jal Board",
+  "source_note": "Catch the Rain 2026; verify before demo",
+  "_sources": {
+    "mandatory_min_plot_m2": [
+      {
+        "title": "ORF, 'Rainwater harvesting strategy of Delhi government' (cites DJB Circular 10.07.2020 and DJB RWH guidelines)",
+        "url": "https://www.orfonline.org/expert-speak/rainwater-harvesting-strategy-delhi-government",
+        "date": "2020-07-31"
+      },
+      {
+        "title": "Catch the Rain 2026 announcement by the Delhi Chief Minister at a Delhi Jal Board event",
+        "url": "https://www.eawater.com/press-release/delhi-government-unveils-catch-the-rain-2026-initiative-with-mandatory-rainwater-harvesting-norms/",
+        "date": "2026-05-01"
+      },
+      {
+        "title": "CSE, 'Legislation on rainwater harvesting' (Ministry of Urban Development mandate since June 2001)",
+        "url": "https://www.cseindia.org/legislation-on-rainwater-harvesting-1111",
+        "date": "2001-06"
+      }
+    ],
+    "max_assistance_inr": [
+      {
+        "title": "ORF, 'Rainwater harvesting strategy of Delhi government' (cites DJB Circular 10.07.2020 and DJB RWH guidelines)",
+        "url": "https://www.orfonline.org/expert-speak/rainwater-harvesting-strategy-delhi-government",
+        "date": "2020-07-31"
+      },
+      {
+        "title": "Catch the Rain 2026 announcement by the Delhi Chief Minister at a Delhi Jal Board event",
+        "url": "https://www.eawater.com/press-release/delhi-government-unveils-catch-the-rain-2026-initiative-with-mandatory-rainwater-harvesting-norms/",
+        "date": "2026-05-01"
+      }
+    ],
+    "assistance_fraction": [
+      {
+        "title": "ORF, 'Rainwater harvesting strategy of Delhi government' (cites DJB Circular 10.07.2020 and DJB RWH guidelines)",
+        "url": "https://www.orfonline.org/expert-speak/rainwater-harvesting-strategy-delhi-government",
+        "date": "2020-07-31"
+      }
+    ],
+    "rebate_fraction": [
+      {
+        "title": "ORF, 'Rainwater harvesting strategy of Delhi government' (cites DJB Circular 10.07.2020 and DJB RWH guidelines)",
+        "url": "https://www.orfonline.org/expert-speak/rainwater-harvesting-strategy-delhi-government",
+        "date": "2020-07-31"
+      },
+      {
+        "title": "Catch the Rain 2026 announcement by the Delhi Chief Minister at a Delhi Jal Board event",
+        "url": "https://www.eawater.com/press-release/delhi-government-unveils-catch-the-rain-2026-initiative-with-mandatory-rainwater-harvesting-norms/",
+        "date": "2026-05-01"
+      }
+    ],
+    "penalty_fraction": [
+      {
+        "title": "ORF, 'Rainwater harvesting strategy of Delhi government' (cites DJB Circular 10.07.2020 and DJB RWH guidelines)",
+        "url": "https://www.orfonline.org/expert-speak/rainwater-harvesting-strategy-delhi-government",
+        "date": "2020-07-31"
+      }
+    ],
+    "_note": "All values checked 2026-10-07 against these secondary sources; they agree. The DJB primary documents (delhijalboard.nic.in/sites/default/files/RWH.pdf and Circular_10.07.2020.pdf) were not reachable when checked. Confirm against the current DJB notification before relying on them."
+  }
+}

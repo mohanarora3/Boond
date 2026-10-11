@@ -1,0 +1,185 @@
+{
+  "design_rainfall_mm_per_hour": 60,
+  "design_storm_minutes": 15,
+  "first_flush_filter_cost_inr": 8000,
+  "recharge_pit": {
+    "label": "Recharge pit",
+    "max_roof_m2": 300,
+    "depth_m": 3.0,
+    "min_side_m": 1.0,
+    "max_side_m": 2.0,
+    "cost_per_m3_inr": 3500
+  },
+  "recharge_trench": {
+    "label": "Recharge trench",
+    "width_m": 1.0,
+    "depth_m": 1.5,
+    "min_length_m": 2.0,
+    "cost_per_m3_inr": 3000
+  },
+  "storage_tank": {
+    "label": "Storage tank",
+    "litres_per_person_per_day": 20,
+    "storage_days": 3,
+    "sizes": [
+      {
+        "litres": 1000,
+        "cost_inr": 9000
+      },
+      {
+        "litres": 2000,
+        "cost_inr": 16000
+      },
+      {
+        "litres": 3000,
+        "cost_inr": 22000
+      },
+      {
+        "litres": 5000,
+        "cost_inr": 35000
+      },
+      {
+        "litres": 10000,
+        "cost_inr": 65000
+      }
+    ]
+  },
+  "maintenance": {
+    "recharge_pit": [
+      "Clean the first-flush filter and mesh before monsoon (May–June).",
+      "Remove leaves and silt from the pit top and inlet chamber.",
+      "Replace the top sand layer if water stands for more than a day after rain.",
+      "Check the pit cover is intact so children and animals are safe."
+    ],
+    "recharge_trench": [
+      "Clean the first-flush filter and mesh before monsoon (May–June).",
+      "Clear leaves and silt along the trench surface.",
+      "Replace the top sand/gravel layer if water stands after rain."
+    ],
+    "storage_tank": [
+      "Clean the first-flush filter and mesh before monsoon (May–June).",
+      "Wash the tank once a year and keep the lid closed (mosquito safety).",
+      "Check the overflow pipe is clear and leads to a drain or pit."
+    ]
+  },
+  "fix_tips": {
+    "needs_cleaning": {
+      "filter": "Open the filter, wash the mesh and remove trapped leaves and silt before the next rain.",
+      "pit": "Scoop out leaves and silt from the pit top and inlet; replace the top sand layer if it is caked.",
+      "gutter": "Clear leaves and debris from the gutter and downpipe so rain reaches the filter.",
+      "tank": "Drain and scrub the tank, clean the inlet mesh and keep the lid closed.",
+      "unknown": "Clean the filter mesh and inlet, and remove leaves and silt before the monsoon."
+    },
+    "broken": {
+      "filter": "The filter looks damaged — replace the mesh or filter unit before the monsoon.",
+      "pit": "The pit or its cover looks damaged — get a mason to repair it so water can soak in safely.",
+      "gutter": "The gutter or pipe looks broken — repair the joint or replace the section so water isn't lost.",
+      "tank": "The tank looks cracked or leaking — repair or replace it before the monsoon.",
+      "unknown": "Part of the system looks damaged — get it repaired before the monsoon."
+    }
+  },
+  "vision": {
+    "min_confidence": 0.6,
+    "max_photo_bytes": 3750000,
+    "max_photo_distance_m": 150,
+    "max_accuracy_allowance_m": 100,
+    "max_capture_age_minutes": 15,
+    "_note": "Location check: a 'healthy' photo verifies a plan only if taken within max_photo_distance_m (+ up to max_accuracy_allowance_m of GPS uncertainty) of the plan's location, within max_capture_age_minutes."
+  },
+  "footprints": {
+    "min_area_m2": 20,
+    "default_roof_type": "rcc",
+    "confidence_min": 0.75,
+    "simplify_tolerance_m": 0.5,
+    "polygons_min_zoom": 16,
+    "colour_buckets_litres": [
+      25000,
+      75000,
+      150000,
+      400000
+    ],
+    "nearest_building_max_m": 30,
+    "wards": [
+      {
+        "slug": "lodhi-road",
+        "name": "Lodhi Road",
+        "officialName": "NDMC CHARGE 6",
+        "wardNo": "NDMC_6"
+      },
+      {
+        "slug": "lajpat-nagar",
+        "name": "Lajpat Nagar",
+        "officialName": "LAJPAT NAGAR",
+        "wardNo": "155"
+      },
+      {
+        "slug": "mayur-vihar",
+        "name": "Mayur Vihar",
+        "officialName": "MAYUR VIHAR PHASE-I",
+        "wardNo": "209"
+      },
+      {
+        "slug": "rohini",
+        "name": "Rohini",
+        "officialName": "ROHINI",
+        "wardNo": "21"
+      },
+      {
+        "slug": "dwarka",
+        "name": "Dwarka",
+        "officialName": "KAKRAULA",
+        "wardNo": "135"
+      }
+    ],
+    "_sources": {
+      "buildings": "Overture Maps Foundation buildings theme (Google Open Buildings, Microsoft ML Buildings, OpenStreetMap), ODbL — https://docs.overturemaps.org/attribution/",
+      "wards": "DataMeet Municipal_Spatial_Data, Delhi_Wards.geojson, CC BY-SA 2.5 India — https://github.com/datameet/Municipal_Spatial_Data"
+    }
+  },
+  "simulation": {
+    "default_storm_date": "2024-07-31",
+    "daily_cycles": 3,
+    "_note": "31 July 2024: an intense evening downpour over Delhi. Open-Meteo's archive gives 116 mm at Lodhi Road, 41 mm in Dwarka, 59 mm in Rohini and 280 mm over east and south-east Delhi (Mayur Vihar, Lajpat Nagar) for that day — the heaviest day in the archive for Lodhi Road since 2022. daily_cycles: a pit or tank empties (soaks away or is used) and refills about 3 times across a day of bursts; this is an assumption, not a measured figure."
+  },
+  "feasibility": {
+    "questions": {
+      "contaminationSourceNearby": {
+        "reason": "contamination_risk",
+        "reason_text": "A septic tank, soak pit or sewer line nearby could let dirty water reach the groundwater through a recharge pit.",
+        "check_text": "Check where your septic tank, soak pit and sewer line run before choosing where to dig. Ask a qualified plumber or the Jal Board how far a recharge pit must be from them."
+      },
+      "waterloggingArea": {
+        "reason": "waterlogging",
+        "reason_text": "In an area that waterlogs, the ground is already full, so a recharge pit can overflow and push dirty street water back in.",
+        "check_text": "Check whether your street or compound floods in heavy rain. If it does, a storage tank is usually the safer choice; confirm with the Jal Board."
+      },
+      "pitNearFoundation": {
+        "reason": "foundation_risk",
+        "reason_text": "Soaking water into the ground right next to the foundation can weaken it or cause damp in the walls.",
+        "check_text": "Check how close the open ground is to your building's foundation. Ask a structural engineer or qualified plumber before digging near it."
+      }
+    },
+    "_source": "Wording only; no official setback distances are cited because none were verified for this project. Users are directed to a qualified plumber or the Delhi Jal Board."
+  },
+  "impact": {
+    "cache_hours": 6,
+    "archive_lag_days": 6,
+    "season_months": [
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "dashboard": {
+    "hidden_wards": [
+      "Warm-up"
+    ],
+    "_note": "Plans in these wards (e.g. created by scripts/warm.sh) are left out of dashboard figures."
+  },
+  "water_balance": {
+    "use_litres_per_person_per_day": 20,
+    "water_price_inr_per_kl": 50,
+    "_note": "use_litres_per_person_per_day: rainwater a household draws from a tank for washing, toilets and garden (same figure used to size tanks). water_price_inr_per_kl: what a litre of tank water replaces, used only to value tank water; a Boond estimate, not the DJB tariff. Confirm both before relying on them."
+  }
+}

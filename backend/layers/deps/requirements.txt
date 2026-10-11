@@ -1,0 +1,2 @@
+strands-agents>=1.58
+reportlab>=4.2

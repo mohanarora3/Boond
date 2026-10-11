@@ -1,0 +1,339 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Boond — rooftop rainwater harvesting planner for Delhi
+
+Parameters:
+  AllowedOrigin:
+    Type: String
+    Default: "*"
+    Description: Frontend origin allowed by CORS (set to the Amplify URL after deploy)
+  NotificationEmail:
+    Type: String
+    Default: ""
+    Description: Email that receives the demo monsoon reminders (confirm the SNS subscription email)
+  FrontendUrl:
+    Type: String
+    Default: ""
+    Description: Public frontend URL used in reminder links (the Amplify URL)
+  ReminderAfterDays:
+    Type: Number
+    Default: 30
+    Description: Remind when a system has had no check for this many days (use 0 for the demo)
+  BedrockTextModelId:
+    Type: String
+    Default: us.amazon.nova-lite-v1:0
+  BedrockVisionModelId:
+    Type: String
+    Default: us.amazon.nova-lite-v1:0
+
+Conditions:
+  HasNotificationEmail: !Not [!Equals [!Ref NotificationEmail, ""]]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    Timeout: 20
+    MemorySize: 512
+    CodeUri: .
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref BoondTable
+        BUCKET_NAME: !Ref BoondBucket
+        BEDROCK_TEXT_MODEL_ID: !Ref BedrockTextModelId
+        BEDROCK_VISION_MODEL_ID: !Ref BedrockVisionModelId
+        FRONTEND_URL: !Ref FrontendUrl
+
+Resources:
+  BoondTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "Boond-${AWS::StackName}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: PK, AttributeType: S }
+        - { AttributeName: SK, AttributeType: S }
+        - { AttributeName: GSI1PK, AttributeType: S }
+        - { AttributeName: GSI1SK, AttributeType: S }
+      KeySchema:
+        - { AttributeName: PK, KeyType: HASH }
+        - { AttributeName: SK, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - { AttributeName: GSI1PK, KeyType: HASH }
+            - { AttributeName: GSI1SK, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+
+  BoondBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [PUT, GET]
+            AllowedOrigins: [!Ref AllowedOrigin]
+            AllowedHeaders: ["*"]
+            MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-generated-applications
+            Status: Enabled
+            Prefix: applications/
+            ExpirationInDays: 30
+          - Id: expire-generated-certificates
+            Status: Enabled
+            Prefix: certificates/
+            ExpirationInDays: 30
+
+  DepsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "boond-deps-${AWS::StackName}"
+      ContentUri: layers/deps
+      CompatibleRuntimes: [python3.12]
+      CompatibleArchitectures: [arm64]
+    Metadata:
+      BuildMethod: python3.12
+      BuildArchitecture: arm64
+
+  BoondApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref AllowedOrigin]
+        AllowHeaders: [Content-Type]
+        AllowMethods: [GET, POST, PATCH, OPTIONS]
+
+  PlansFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.plans.handler.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+      Events:
+        CreatePlan:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans", Method: POST }
+        GetPlan:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}", Method: GET }
+        UpdatePlan:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}", Method: PATCH }
+        Verify:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/verify/{id}", Method: GET }
+        Impact:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/impact", Method: GET }
+
+  ApplicationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.application.pdf.lambda_handler
+      Layers: [!Ref DepsLayer]
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+        - S3CrudPolicy: { BucketName: !Ref BoondBucket }
+      Events:
+        Apply:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/application", Method: POST }
+        Certificate:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/certificate", Method: POST }
+
+  ReviewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.review.handler.lambda_handler
+      Timeout: 29  # the OpenStreetMap (Overpass) lookup can take a few seconds
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+        - S3ReadPolicy: { BucketName: !Ref BoondBucket }
+      Events:
+        Applications:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/officer/applications", Method: GET }
+        NearbyWater:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/nearby-water", Method: GET }
+        Review:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/review", Method: POST }
+
+  AgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.agent.handler.lambda_handler
+      Layers: [!Ref DepsLayer]
+      Timeout: 29
+      MemorySize: 1024
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+        - S3CrudPolicy: { BucketName: !Ref BoondBucket }
+        - Statement:
+            - Effect: Allow
+              Action: [bedrock:InvokeModel, bedrock:InvokeModelWithResponseStream]
+              Resource:
+                - arn:aws:bedrock:*::foundation-model/*
+                - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+      Events:
+        Chat:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/chat", Method: POST }
+        ChatHistory:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/chat", Method: GET }
+
+  MaintenanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.maintenance.handler.lambda_handler
+      Timeout: 29
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+        - S3CrudPolicy: { BucketName: !Ref BoondBucket }
+        - Statement:
+            - Effect: Allow
+              Action: [bedrock:InvokeModel]
+              Resource:
+                - arn:aws:bedrock:*::foundation-model/*
+                - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+      Events:
+        UploadUrl:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/photos/upload-url", Method: POST }
+        Installation:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/installation", Method: POST }
+        RunCheck:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/checks", Method: POST }
+        ListChecks:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/plans/{id}/checks", Method: GET }
+
+  WardsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.wards.handler.lambda_handler
+      MemorySize: 1024
+      Timeout: 29
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+        - S3ReadPolicy: { BucketName: !Ref BoondBucket }
+      Events:
+        ListWards:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/wards", Method: GET }
+        GetWard:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/wards/{ward}", Method: GET }
+        Simulate:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/wards/{ward}/simulate", Method: GET }
+
+  RulesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.rules.handler.lambda_handler
+      MemorySize: 256
+      Events:
+        Rules:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/rules", Method: GET }
+
+  DashboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.dashboard.handler.lambda_handler
+      MemorySize: 1024
+      Timeout: 29
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref BoondTable }
+        - S3ReadPolicy: { BucketName: !Ref BoondBucket }
+      Events:
+        Dashboard:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/dashboard", Method: GET }
+        Attention:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/dashboard/attention", Method: GET }
+        Gap:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/dashboard/gap", Method: GET }
+
+  ReminderTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Boond
+
+  ReminderSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasNotificationEmail
+    Properties:
+      TopicArn: !Ref ReminderTopic
+      Protocol: email
+      Endpoint: !Ref NotificationEmail
+
+  ReminderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.reminders.handler.lambda_handler
+      Timeout: 120
+      Environment:
+        Variables:
+          TOPIC_ARN: !Ref ReminderTopic
+          FRONTEND_URL: !Ref FrontendUrl
+          REMINDER_AFTER_DAYS: !Ref ReminderAfterDays
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref BoondTable }
+        - SNSPublishMessagePolicy: { TopicName: !GetAtt ReminderTopic.TopicName }
+      Events:
+        Daily:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: rate(1 day)
+            Description: Daily pre-monsoon health-check reminders
+
+  BoondPlaceIndex:
+    Type: AWS::Location::PlaceIndex
+    Properties:
+      IndexName: !Sub "boond-places-${AWS::StackName}"
+      DataSource: Esri
+      PricingPlan: RequestBasedUsage
+
+  GeocodeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.geocode.handler.lambda_handler
+      Environment:
+        Variables:
+          PLACE_INDEX_NAME: !Ref BoondPlaceIndex
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [geo:SearchPlaceIndexForText, geo:SearchPlaceIndexForPosition]
+              Resource: !GetAtt BoondPlaceIndex.Arn
+      Events:
+        Geocode:
+          Type: HttpApi
+          Properties: { ApiId: !Ref BoondApi, Path: "/geocode", Method: GET }
+
+Outputs:
+  ApiUrl:
+    Description: Base URL of the Boond API
+    Value: !Sub "https://${BoondApi}.execute-api.${AWS::Region}.amazonaws.com"
+  TableName:
+    Value: !Ref BoondTable
+  BucketName:
+    Value: !Ref BoondBucket
+  ReminderFunctionName:
+    Description: Invoke manually for the demo (aws lambda invoke --function-name <this> out.json)
+    Value: !Ref ReminderFunction

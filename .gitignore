@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.pytest_cache/
+backend/.aws-sam/
+backend/.local/
+backend/samconfig.toml
+node_modules/
+frontend/dist/
+.env
+.env.local
+.DS_Store
+frontend/.env
+demo/data/overture_buildings.parquet
+demo/data/overture_release.txt
